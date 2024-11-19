@@ -1,0 +1,86 @@
+function searchAlgorithms()
+    % Define graph and heuristic
+    graph = [
+        0 1 2 0 0 0;
+        1 0 0 3 10 0;
+        2 0 0 0 0 5;
+        0 3 0 0 0 1;
+        0 10 0 0 0 2;
+        0 0 5 1 2 0
+    ];
+    heuristic = [7 6 2 1 0 3]; % Estimated costs to goal
+    startNode = 1;
+    goalNode = 5;
+
+    fprintf('Greedy Best-First Search Path: ');
+    greedySearch(graph, heuristic, startNode, goalNode);
+
+    fprintf('\nA* Search Path: ');
+    aStar(graph, heuristic, startNode, goalNode);
+end
+
+% Greedy Best-First Search
+function greedySearch(graph, heuristic, startNode, goalNode)
+    visited = false(1, size(graph, 1));
+    path = [];
+    current = startNode;
+
+    while current ~= goalNode
+        path = [path, current]; % Append current node to path
+        visited(current) = true;
+
+        % Find unvisited neighbors
+        neighbors = find(graph(current, :) > 0 & ~visited);
+        if isempty(neighbors), fprintf('No path!\n'); return; end
+
+        % Pick the neighbor with the smallest heuristic
+        [~, idx] = min(heuristic(neighbors));
+        current = neighbors(idx);
+    end
+
+    fprintf('%s\n', num2str([path, goalNode]));
+end
+
+% A* Search
+function aStar(graph, heuristic, startNode, goalNode)
+    openSet = startNode; % Nodes to evaluate
+    gScore = inf(1, size(graph, 1)); gScore(startNode) = 0; % Actual cost
+    fScore = inf(1, size(graph, 1)); fScore(startNode) = heuristic(startNode); % Estimated total cost
+    cameFrom = zeros(1, size(graph, 1)); % For reconstructing the path
+
+    while ~isempty(openSet)
+        % Node in openSet with lowest fScore
+        [~, idx] = min(fScore(openSet));
+        current = openSet(idx);
+
+        if current == goalNode
+            reconstructPath(cameFrom, current);
+            return;
+        end
+
+        openSet(idx) = []; % Remove current from openSet
+        neighbors = find(graph(current, :) > 0); % Get neighbors
+
+        for neighbor = neighbors
+            tentative_gScore = gScore(current) + graph(current, neighbor);
+            if tentative_gScore < gScore(neighbor)
+                cameFrom(neighbor) = current;
+                gScore(neighbor) = tentative_gScore;
+                fScore(neighbor) = gScore(neighbor) + heuristic(neighbor);
+                if ~ismember(neighbor, openSet), openSet(end+1) = neighbor; end
+            end
+        end
+    end
+
+    fprintf('No path!\n');
+end
+
+% Reconstruct Path
+function reconstructPath(cameFrom, current)
+    path = [];
+    while current ~= 0
+        path = [current, path];
+        current = cameFrom(current);
+    end
+    fprintf('%s\n', num2str(path));
+end
