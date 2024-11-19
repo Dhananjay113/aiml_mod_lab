@@ -1,0 +1,20 @@
+% Main script
+graph = [
+    0 1 1 0;
+    1 0 0 1;
+    1 0 0 1;
+    0 1 1 0
+];
+
+dfs(graph, 1, false(1, size(graph, 1))); % Start DFS at node 1
+
+% DFS function
+function dfs(graph, node, visited)
+    if visited(node), return; end
+    fprintf('%d ', node); % Process current node
+    visited(node) = true; % Mark as visited
+    neighbors = find(graph(node, :)); % Get neighbors
+    for n = neighbors
+        dfs(graph, n, visited); % Recursive call for unvisited neighbors
+    end
+end
