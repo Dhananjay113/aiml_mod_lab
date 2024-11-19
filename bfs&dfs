@@ -1,0 +1,43 @@
+% Main Script to Compare BFS and DFS
+graph = [
+    0 1 1 0;
+    1 0 0 1;
+    1 0 0 1;
+    0 1 1 0
+];
+
+startNode = 1;
+
+fprintf('Breadth-First Search (BFS):\n');
+bfs(graph, startNode);
+
+fprintf('\n\nDepth-First Search (DFS):\n');
+dfs(graph, startNode, false(1, size(graph, 1)));
+
+% BFS Function
+function bfs(graph, startNode)
+    queue = startNode; % Initialize queue with the start node
+    visited = false(1, size(graph, 1)); % Keep track of visited nodes
+    visited(startNode) = true;
+
+    while ~isempty(queue)
+        current = queue(1);
+        queue(1) = []; % Dequeue the front element
+        fprintf('%d ', current); % Process the current node
+
+        neighbors = find(graph(current, :) & ~visited); % Unvisited neighbors
+        queue = [queue, neighbors]; % Enqueue neighbors
+        visited(neighbors) = true; % Mark as visited
+    end
+end
+
+% DFS Function
+function dfs(graph, node, visited)
+    if visited(node), return; end
+    fprintf('%d ', node); % Process the current node
+    visited(node) = true; % Mark as visited
+    neighbors = find(graph(node, :)); % Get neighbors
+    for n = neighbors
+        dfs(graph, n, visited); % Recursive call for unvisited neighbors
+    end
+end
