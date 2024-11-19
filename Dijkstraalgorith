@@ -1,0 +1,74 @@
+% Dijkstra's Algorithm Implementation with Example and Visualization
+
+% Example Usage:
+% Define the adjacency matrix (graph)
+% 0 indicates no path between nodes, non-zero values represent edge weights
+graph = [
+    0 1 4 0 0 0;
+    1 0 4 2 7 0;
+    4 4 0 3 5 0;
+    0 2 3 0 4 6;
+    0 7 5 4 0 7;
+    0 0 0 6 7 0
+];
+
+% Define the starting node (1-based index)
+startNode = 1;
+
+% Call Dijkstra's function
+[distances, previousNodes] = dijkstra(graph, startNode);
+
+% Display the results
+disp('Shortest distances from the start node:');
+disp(distances);
+disp('Previous nodes for the shortest path:');
+disp(previousNodes);
+
+% Visualize the graph and shortest paths
+figure;
+gplot(graph, [1 1; 2 3; 3 1; 4 4; 5 2; 6 3], 'ok');
+hold on;
+for i = 1:size(graph,1)
+    text(i, i, num2str(i), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+end
+title('Graph with Nodes');
+xlabel('X');
+ylabel('Y');
+grid on;
+
+% Function Definition for Dijkstra's Algorithm
+function [distances, previousNodes] = dijkstra(graph, startNode)
+    % graph: Adjacency matrix of the graph
+    % startNode: The node from which to start the shortest path computation
+    
+    % Number of nodes
+    n = size(graph, 1);
+    
+    % Initialize distances to infinity, and previous node as NaN
+    distances = inf(1, n);
+    distances(startNode) = 0;
+    previousNodes = NaN(1, n);
+    
+    % Create a set of unvisited nodes
+    unvisitedNodes = 1:n;
+    
+    while ~isempty(unvisitedNodes)
+        % Find the unvisited node with the smallest distance
+        [~, currentNode] = min(distances(unvisitedNodes));
+        currentNode = unvisitedNodes(currentNode);
+        
+        % Remove current node from unvisited nodes
+        unvisitedNodes(unvisitedNodes == currentNode) = [];
+        
+        % Update the distances for the neighbors of the current node
+        for neighbor = 1:n
+            if graph(currentNode, neighbor) > 0  % If there is an edge
+                alt = distances(currentNode) + graph(currentNode, neighbor);
+                if alt < distances(neighbor)
+                    distances(neighbor) = alt;
+                    previousNodes(neighbor) = currentNode;
+                end
+            end
+        end
+    end
+end
