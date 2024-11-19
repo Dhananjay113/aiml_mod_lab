@@ -1,0 +1,39 @@
+function decisionTreeExample()
+    % Sample dataset (Iris dataset as an example)
+    % Features: Sepal Length, Sepal Width, Petal Length, Petal Width
+    % Target: 1 - Setosa, 2 - Versicolor, 3 - Virginica
+    
+    % Load the built-in Fisher's Iris dataset
+    load fisheriris;
+    % The dataset has 150 samples with 4 features
+    % 'meas' contains the feature data (sepal length, sepal width, petal length, petal width)
+    % 'species' contains the class labels (species names)
+    
+    % Convert species labels to numeric values
+    Y = grp2idx(species);  % Convert categorical target variable to numeric (1, 2, or 3)
+    
+    % Train-test split (80% for training, 20% for testing)
+    cv = cvpartition(length(Y), 'HoldOut', 0.2);
+    X_train = meas(training(cv), :); % Training features
+    Y_train = Y(training(cv)); % Training labels
+    X_test = meas(test(cv), :); % Testing features
+    Y_test = Y(test(cv)); % Testing labels
+    
+    % Create a decision tree classifier using the training data
+    treeModel = fitctree(X_train, Y_train);
+    
+    % Visualize the decision tree
+    view(treeModel, 'Mode', 'graph');
+    
+    % Make predictions using the trained model
+    Y_pred = predict(treeModel, X_test);
+    
+    % Calculate the accuracy
+    accuracy = sum(Y_pred == Y_test) / length(Y_test);
+    fprintf('Model Accuracy: %.2f%%\n', accuracy * 100);
+    
+    % Confusion Matrix
+    figure;
+    confusionchart(Y_test, Y_pred);
+    title('Confusion Matrix for Decision Tree');
+end
