@@ -1,0 +1,52 @@
+function locallyWeightedRegressionWithPlot()
+    % Sample Data (X: Features, y: Targets)
+    X = [1 1; 2 2; 3 3; 4 4; 5 5];
+    y = [2; 3; 2.5; 5; 4.5];
+    
+    % Query points where predictions are made
+    X_query = [1.5 1.5; 3.5 3.5];
+    
+    % Bandwidth parameter (controls locality)
+    tau = 1.0;
+    
+    % Perform Locally Weighted Regression
+    y_pred = locallyWeightedRegression(X, y, X_query, tau);
+    
+    % Display Predictions
+    disp('Predictions:');
+    disp(y_pred);
+    
+    % Plotting data points and regression prediction
+    figure;
+    scatter(X(:,1), y, 'filled');
+    hold on;
+    plot(X_query(:,1), y_pred, 'ro', 'MarkerSize', 8, 'LineWidth', 2);
+    xlabel('X');
+    ylabel('y');
+    title('Locally Weighted Regression');
+    legend('Data Points', 'Predictions');
+    grid on;
+end
+
+function [y_pred] = locallyWeightedRegression(X, y, X_query, tau)
+    % X: Input features (m x n matrix, where m is the number of points and n is the number of features)
+    % y: Target values (m x 1 vector)
+    % X_query: Query points (q x n matrix, where q is the number of query points)
+    % tau: Bandwidth parameter that controls the locality of the regression
+
+    [m, n] = size(X); % Number of data points and features
+    q = size(X_query, 1); % Number of query points
+    
+    y_pred = zeros(q, 1); % Initialize predicted values
+    
+    for i = 1:q
+        % Compute weights based on the distance between X_query(i,:) and all X points
+        W = diag(exp(-sum((X - repmat(X_query(i,:), m, 1)).^2, 2) / (2 * tau^2)));
+        
+        % Solve the weighted least squares problem
+        theta = (X' * W * X) \ (X' * W * y); % Closed form solution for linear regression
+        
+        % Make prediction for the query point
+        y_pred(i) = X_query(i, :) * theta; % Linear model prediction
+    end
+end
