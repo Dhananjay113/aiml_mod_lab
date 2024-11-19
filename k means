@@ -1,0 +1,63 @@
+% K-Means Clustering Implementation with Example and Visualization
+
+% Example usage:
+
+% Generate some synthetic 2D data for clustering
+% Cluster 1: centered at (3, 3)
+% Cluster 2: centered at (-3, -3)
+X = [randn(100, 2) + 3; randn(100, 2) - 3]; % Two clusters of data
+
+% Set the number of clusters (k) and maximum iterations
+k = 2;        % Number of clusters
+maxIter = 100; % Maximum number of iterations
+
+% Call the kMeansClustering function with k = 2 clusters
+[centroids, labels] = kMeansClustering(X, k, maxIter);
+
+% Display the final centroids
+disp('Final centroids:');
+disp(centroids);
+
+% Function definition for kMeansClustering
+function [centroids, labels] = kMeansClustering(X, k, maxIter)
+    % X: Data points (rows: data points, columns: features)
+    % k: Number of clusters
+    % maxIter: Maximum number of iterations
+
+    % Initialize centroids by randomly selecting k data points
+    [n, m] = size(X);
+    centroids = X(randi([1, n], k, 1), :);
+
+    % Initialize labels
+    labels = zeros(n, 1);
+    
+    for iter = 1:maxIter
+        % Step 1: Assign each data point to the nearest centroid
+        for i = 1:n
+            distances = sqrt(sum((centroids - X(i, :)).^2, 2));
+            [~, labels(i)] = min(distances); % Find the closest centroid
+        end
+        
+        % Step 2: Update the centroids to the mean of the assigned points
+        newCentroids = zeros(k, m);
+        for i = 1:k
+            newCentroids(i, :) = mean(X(labels == i, :), 1);
+        end
+        
+        % Step 3: Check for convergence (if centroids don't change)
+        if all(centroids == newCentroids)
+            break;
+        end
+        centroids = newCentroids; % Update centroids
+    end
+    
+    % Visualize the clustering result
+    figure;
+    gscatter(X(:, 1), X(:, 2), labels);
+    hold on;
+    plot(centroids(:, 1), centroids(:, 2), 'kx', 'MarkerSize', 12, 'LineWidth', 2);
+    title('K-Means Clustering');
+    xlabel('Feature 1');
+    ylabel('Feature 2');
+    hold off;
+end
