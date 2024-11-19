@@ -1,0 +1,110 @@
+function annBackpropagationWithVisualization()
+    % Example: XOR problem (2 inputs, 1 output)
+    X = [0 0; 0 1; 1 0; 1 1]; % Input data (4 samples, 2 features)
+    y = [0; 1; 1; 0]; % Target labels (XOR function)
+
+    % Network Parameters
+    inputLayerSize = 2; % 2 inputs
+    hiddenLayerSize = 4; % 4 neurons in the hidden layer
+    outputLayerSize = 1; % 1 output neuron
+
+    % Random initialization of weights
+    W1 = rand(inputLayerSize, hiddenLayerSize);
+    b1 = rand(1, hiddenLayerSize);
+    
+    W2 = rand(hiddenLayerSize, outputLayerSize);
+    b2 = rand(1, outputLayerSize);
+
+    % Hyperparameters
+    learningRate = 0.1; 
+    epochs = 10000; % Number of training iterations
+    lossHistory = zeros(epochs, 1); % To store loss values for plotting
+
+    % Activation Function (Sigmoid)
+    sigmoid = @(x) 1./(1 + exp(-x));
+    sigmoid_derivative = @(x) sigmoid(x) .* (1 - sigmoid(x)); % Derivative of Sigmoid
+
+    % Training loop
+    for epoch = 1:epochs
+        % Forward Propagation
+        Z1 = X * W1 + b1;         % Linear transformation for hidden layer
+        A1 = sigmoid(Z1);         % Activation function (Sigmoid)
+        Z2 = A1 * W2 + b2;        % Linear transformation for output layer
+        A2 = sigmoid(Z2);         % Final output (Sigmoid)
+
+        % Loss Function (Mean Squared Error)
+        loss = mean((y - A2).^2); 
+
+        % Backpropagation
+        % Output Layer
+        dA2 = 2 * (A2 - y) / size(y, 1);  % Derivative of the loss wrt output
+        dZ2 = dA2 .* sigmoid_derivative(Z2); % Derivative of the loss wrt Z2
+        dW2 = A1' * dZ2;  % Gradient for W2
+        db2 = sum(dZ2, 1); % Gradient for b2
+
+        % Hidden Layer
+        dA1 = dZ2 * W2';  % Backpropagate the error to the hidden layer
+        dZ1 = dA1 .* sigmoid_derivative(Z1);  % Derivative of the loss wrt Z1
+        dW1 = X' * dZ1;  % Gradient for W1
+        db1 = sum(dZ1, 1); % Gradient for b1
+
+        % Update weights and biases using gradient descent
+        W1 = W1 - learningRate * dW1;
+        b1 = b1 - learningRate * db1;
+        W2 = W2 - learningRate * dW2;
+        b2 = b2 - learningRate * db2;
+
+        % Store the loss for visualization
+        lossHistory(epoch) = loss;
+
+        % Print loss every 1000 epochs
+        if mod(epoch, 1000) == 0
+            fprintf('Epoch %d, Loss: %.4f\n', epoch, loss);
+        end
+    end
+
+    % Test the trained network
+    fprintf('Test results after training:\n');
+    Z1 = X * W1 + b1;
+    A1 = sigmoid(Z1);
+    Z2 = A1 * W2 + b2;
+    A2 = sigmoid(Z2);
+    disp(A2);  % Display output predictions
+
+    % Plot Loss over Time
+    figure;
+    plot(1:epochs, lossHistory, 'LineWidth', 2);
+    xlabel('Epoch');
+    ylabel('Loss');
+    title('Loss over Epochs');
+    grid on;
+
+    % Plot Decision Boundary
+    figure;
+    % Create a mesh grid for plotting
+    x1_range = linspace(min(X(:,1))-0.1, max(X(:,1))+0.1, 100);
+    x2_range = linspace(min(X(:,2))-0.1, max(X(:,2))+0.1, 100);
+    [X1, X2] = meshgrid(x1_range, x2_range);
+    meshGrid = [X1(:), X2(:)];  % Rename grid to meshGrid
+
+    % Predict the output for each point in the mesh grid
+    Z1_grid = meshGrid * W1 + b1;
+    A1_grid = sigmoid(Z1_grid);
+    Z2_grid = A1_grid * W2 + b2;
+    A2_grid = sigmoid(Z2_grid);
+
+    % Reshape the predictions to match the grid size
+    A2_grid = reshape(A2_grid, size(X1));
+
+    % Plot the decision boundary
+    contourf(X1, X2, A2_grid, [0 0.5 1], 'LineWidth', 2);
+    hold on;
+
+    % Plot the training data points
+    scatter(X(:,1), X(:,2), 100, y, 'filled');
+    xlabel('Input 1');
+    ylabel('Input 2');
+    title('Decision Boundary and Training Data');
+    colorbar;
+    grid on;
+end
