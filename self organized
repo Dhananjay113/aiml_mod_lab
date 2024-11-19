@@ -1,0 +1,83 @@
+function selfOrganizingMap()
+    % Generate sample data (2D)
+    X = [randn(100, 2) * 0.75 + ones(100, 2); 
+         randn(100, 2) * 0.75 - ones(100, 2)];
+     
+    % Parameters for SOM
+    gridSize = 10;  % Size of the grid (10x10 grid)
+    numIterations = 1000;  % Number of training iterations
+    learningRate = 0.1;  % Initial learning rate
+    radius = gridSize / 2;  % Initial neighborhood radius
+    decayRate = 0.99;  % Decay rate for learning rate and radius
+    
+    % Initialize the SOM grid (2D grid of neurons with random weights)
+    somGrid = rand(gridSize, gridSize, 2);  % 2 features (2D data)
+    
+    % Visualize initial grid (before training)
+    figure;
+    plot(X(:,1), X(:,2), 'bo');  % Plot the data points
+    hold on;
+    plot(somGrid(:,:,1), somGrid(:,:,2), 'ro', 'MarkerSize', 10);  % Plot the initial SOM grid
+    title('Initial SOM Grid');
+    grid on;
+    
+    % Training the SOM
+    for iter = 1:numIterations
+        % Pick a random data point
+        sample = X(randi([1, size(X, 1)]), :);
+        
+        % Find the Best Matching Unit (BMU)
+        [bmuRow, bmuCol] = findBMU(somGrid, sample);
+        
+        % Update the weights of the BMU and its neighbors
+        somGrid = updateWeights(somGrid, sample, bmuRow, bmuCol, learningRate, radius);
+        
+        % Decay the learning rate and neighborhood radius
+        learningRate = learningRate * decayRate;
+        radius = radius * decayRate;
+        
+        % Optionally: Visualize the SOM during training
+        if mod(iter, 100) == 0
+            figure(2);
+            plot(X(:,1), X(:,2), 'bo');  % Plot the data points
+            hold on;
+            plot(somGrid(:,:,1), somGrid(:,:,2), 'ro', 'MarkerSize', 10);  % Plot the SOM grid
+            title(['SOM Grid After ', num2str(iter), ' Iterations']);
+            grid on;
+            pause(0.1);  % Pause to update the plot
+        end
+    end
+end
+
+function [bmuRow, bmuCol] = findBMU(somGrid, sample)
+    % Reshape somGrid to a 2D matrix where each row is a neuron (flatten the grid)
+    somGrid2D = reshape(somGrid, [], 2);  % Reshape the grid to (gridSize^2, 2)
+    
+    % Calculate the Euclidean distance between the sample and each neuron in the grid
+    distances = sqrt(sum((somGrid2D - sample).^2, 2));
+    
+    % Find the position of the BMU (Best Matching Unit)
+    [~, idx] = min(distances);
+    
+    % Convert the index of the BMU to row and column
+    [bmuRow, bmuCol] = ind2sub([size(somGrid, 1), size(somGrid, 2)], idx);
+end
+
+function somGrid = updateWeights(somGrid, sample, bmuRow, bmuCol, learningRate, radius)
+    % Update the weights of the BMU and its neighbors
+    for row = 1:size(somGrid, 1)
+        for col = 1:size(somGrid, 2)
+            % Calculate the distance between the BMU and the current neuron
+            dist = sqrt((bmuRow - row)^2 + (bmuCol - col)^2);
+            
+            % If within the neighborhood radius, update the weight
+            if dist <= radius
+                influence = exp(-(dist^2) / (2 * (radius^2)));
+                
+                % Ensure the weight update operation is performed correctly for each neuron
+                somGrid(row, col, :) = squeeze(somGrid(row, col, :)) + learningRate * influence * (sample - squeeze(somGrid(row, col, :)));
+            end
+        end
+    end
+end
+
