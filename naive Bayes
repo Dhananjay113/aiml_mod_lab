@@ -1,0 +1,63 @@
+function naiveBayesWithVisualization()
+    % Generating some example data for classification
+    % Two features, two classes (Class 1 and Class 2)
+    % Class 1: [2 4], [3 6], [4 7]
+    % Class 2: [7 2], [8 3], [9 4]
+    class1 = [2 4; 3 6; 4 7];
+    class2 = [7 2; 8 3; 9 4];
+    
+    % Combine the classes into one dataset
+    X = [class1; class2];  % All data points
+    y = [ones(size(class1, 1), 1); 2 * ones(size(class2, 1), 1)];  % Labels
+
+    % Train Naive Bayes model using the training data
+    % Calculate means and variances for each class (Naive Bayes assumption)
+    class1_data = X(y == 1, :);
+    class2_data = X(y == 2, :);
+    
+    mean1 = mean(class1_data);
+    mean2 = mean(class2_data);
+    var1 = var(class1_data);
+    var2 = var(class2_data);
+    
+    % Compute prior probabilities
+    prior1 = size(class1_data, 1) / size(X, 1);
+    prior2 = size(class2_data, 1) / size(X, 1);
+    
+    % Visualization: Plot training data points
+    figure;
+    scatter(class1(:, 1), class1(:, 2), 100, 'b', 'filled'); % Class 1
+    hold on;
+    scatter(class2(:, 1), class2(:, 2), 100, 'r', 'filled'); % Class 2
+    xlabel('Feature 1');
+    ylabel('Feature 2');
+    title('Training Data: Class 1 (Blue), Class 2 (Red)');
+    legend('Class 1', 'Class 2');
+    grid on;
+
+    % Plot decision boundary
+    x1_range = linspace(min(X(:, 1))-1, max(X(:, 1))+1, 100);
+    x2_range = linspace(min(X(:, 2))-1, max(X(:, 2))+1, 100);
+    [X1, X2] = meshgrid(x1_range, x2_range);
+    Z = predictNaiveBayes([X1(:), X2(:)], mean1, mean2, var1, var2, prior1, prior2);
+    Z = reshape(Z, size(X1));
+    
+    % Plot decision boundary (where the classifier changes from Class 1 to Class 2)
+    contourf(X1, X2, Z, [0 0.5 1], 'LineWidth', 2);
+    scatter(X(:, 1), X(:, 2), 100, y, 'filled');
+    colorbar;
+    xlabel('Feature 1');
+    ylabel('Feature 2');
+    title('Naive Bayes Decision Boundary');
+    legend('Class 1', 'Class 2');
+    grid on;
+end
+
+function class = predictNaiveBayes(X, mean1, mean2, var1, var2, prior1, prior2)
+    % Calculate the posterior probabilities for each class
+    p1 = prior1 * normpdf(X(:, 1), mean1(1), sqrt(var1(1))) .* normpdf(X(:, 2), mean1(2), sqrt(var1(2)));
+    p2 = prior2 * normpdf(X(:, 1), mean2(1), sqrt(var2(1))) .* normpdf(X(:, 2), mean2(2), sqrt(var2(2)));
+    
+    % Choose the class with the highest posterior probability
+    class = (p2 > p1) + 1; % Class 1 if p1 > p2, else Class 2
+end
