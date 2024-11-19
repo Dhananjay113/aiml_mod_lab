@@ -1,0 +1,47 @@
+% Hierarchical Clustering Implementation with Example and Visualization
+
+% Example usage:
+
+% Generate some synthetic 2D data for clustering
+% Cluster 1: centered at (3, 3)
+% Cluster 2: centered at (-3, -3)
+X = [randn(100, 2) + 3; randn(100, 2) - 3]; % Two clusters of data
+
+% Perform hierarchical clustering
+Z = linkage(X, 'ward'); % 'ward' linkage minimizes the variance within clusters
+
+% Create a dendrogram to visualize the hierarchical clustering
+figure;
+dendrogram(Z);
+title('Hierarchical Clustering Dendrogram');
+xlabel('Data Points');
+ylabel('Distance');
+grid on;
+
+% Cut the dendrogram at a specified height (optional) to form clusters
+T = cluster(Z, 'maxclust', 2); % Form 2 clusters based on the dendrogram
+
+% Visualize the clustered data points
+figure;
+gscatter(X(:,1), X(:,2), T, 'rgb', 'xo', 8);
+title('Data Points with Cluster Labels');
+xlabel('Feature 1');
+ylabel('Feature 2');
+legend('Cluster 1', 'Cluster 2');
+grid on;
+
+% Function definition for Hierarchical Clustering
+function Z = hierarchicalClustering(X)
+    % X: Data points (rows: data points, columns: features)
+    
+    % Perform hierarchical clustering using 'ward' linkage
+    Z = linkage(X, 'ward'); % The 'ward' method minimizes within-cluster variance
+    
+    % Visualize the dendrogram
+    figure;
+    dendrogram(Z);
+    title('Hierarchical Clustering Dendrogram');
+    xlabel('Data Points');
+    ylabel('Distance');
+    grid on;
+end
